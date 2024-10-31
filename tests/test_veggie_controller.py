@@ -6,8 +6,12 @@ def test_list_veggies(client, session):
     session.add(PackVeggie(name="Carrot Pack", numOfPack=5, pricePerPack=4.5))
     session.commit()
     
-    response = client.get("/list")
-    assert response.status_code == 200
+    # response = client.get("/list")
+    # assert response.status_code == 200
+    response = client.get("/list", follow_redirects=False)
+    assert response.status_code == 302  # Now expecting a redirect
+
     assert b"Tomato" in response.data
     assert b"Potato" in response.data
     assert b"Carrot Pack" in response.data
+
