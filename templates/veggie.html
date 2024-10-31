@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Veggie List{% endblock %}
+
+{% block content %}
+<h2>Unit Price Veggies</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price per Unit</th>
+            <th>Available Quantity</th>
+            <th>Add to Cart</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for veggie in unit_veggies %}
+        <tr>
+            <td>{{ veggie.name }}</td>
+            <td>{{ veggie.pricePerUnit }}</td>
+            <td>{{ veggie.quantity }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('order.add_to_cart') }}">
+                    <input type="hidden" name="item_id" value="{{ veggie.id }}">
+                    <input type="hidden" name="item_type" value="unit_veggie">
+                    <input type="hidden" name="price_per_unit" value="{{ veggie.pricePerUnit }}">
+                    <input type="number" name="quantity" min="0" max="{{ veggie.quantity }}" value="0">
+                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Weighted Veggies</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Weight (kg)</th>
+            <th>Price per Kilo</th>
+            <th>Add to Cart</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for veggie in weighted_veggies %}
+        <tr>
+            <td>{{ veggie.name }}</td>
+            <td>{{ veggie.weight }}</td>
+            <td>{{ veggie.weightPerKilo }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('order.add_to_cart') }}">
+                    <input type="hidden" name="item_id" value="{{ veggie.id }}">
+                    <input type="hidden" name="item_type" value="weighted_veggie">
+                    <input type="hidden" name="price_per_kilo" value="{{ veggie.weightPerKilo }}">
+                    <input type="number" name="quantity" min="0" max="{{ veggie.weight }}" step="0.5" value="0">
+                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Pack Veggies</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Number of Packs</th>
+            <th>Price per Pack</th>
+            <th>Add to Cart</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for veggie in pack_veggies %}
+        <tr>
+            <td>{{ veggie.name }}</td>
+            <td>{{ veggie.numOfPack }}</td>
+            <td>{{ veggie.pricePerPack }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('order.add_to_cart') }}">
+                    <input type="hidden" name="item_id" value="{{ veggie.id }}">
+                    <input type="hidden" name="item_type" value="pack_veggie">
+                    <input type="hidden" name="price_per_pack" value="{{ veggie.pricePerPack }}">
+                    <input type="number" name="quantity" min="0" max="{{ veggie.numOfPack }}" value="0">
+                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Premade Boxes</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Box Size</th>
+            <th>Number of Boxes</th>
+            <th>Price</th>
+            <th>Select Items</th>
+            <th>Add to Cart</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for box in premade_boxes %}
+        <tr>
+            <td>{{ box.box_size }}</td>
+            <td>{{ box.num_of_boxes }}</td>
+            <td>{{ box.box_price }}</td>
+            <td>
+                <div>
+                    <h6>Select Items ({{ box.box_size|capitalize }})
+                    <small>Select exactly {% if box.box_size == 'small' %}2{% elif box.box_size == 'medium' %}3{% else %}4{% endif %} items</small></h6>
+                    <p id="selection-count-{{ box.box_size }}" style="color: red; display: none;"></p> <!-- Error message area -->
+                    <div>
+                        {% for veggie in all_veggies %}
+                            <label>
+                                <input type="checkbox" name="selected_items" value="{{ veggie.id }}" 
+                                       class="item-checkbox-{{ box.box_size }}"
+                                       onchange="updateSelection('{{ box.box_size }}');">
+                                {{ veggie.name }}
+                            </label><br>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+            </td>
+           
+            
+            <td>
+                <form method="POST" action="{{ url_for('order.add_to_cart') }}" onsubmit="return validateSelection('{{ box.box_size }}');">
+                    <input type="hidden" name="item_id" value="{{ box.item_id }}">
+                    <input type="hidden" name="item_type" value="premade_box">
+                    <input type="hidden" name="box_price" value="{{ box.box_price }}">
+                    <input type="hidden" name="box_size" value="{{ box.box_size }}">
+                    <input type="number" name="quantity" min="0" max="{{ box.num_of_boxes }}" value="0">
+                    <input type="hidden" name="selected_item_ids" id="selected_item_ids_{{ box.box_size }}">
+                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+{% block scripts %}
+
+<!-- JavaScript for validation -->
+<script>
+    
+    function updateSelection(boxSize) {
+        const checkboxes = document.querySelectorAll(`.item-checkbox-${boxSize}`);
+        const selectedItems = Array.from(checkboxes).filter(checkbox => checkbox.checked);
+        const requiredCount = boxSize === 'small' ? 2 : boxSize === 'medium' ? 3 : 4;
+
+        // Populate hidden input with selected item IDs
+        const selectedItemIds = selectedItems.map(item => item.value).join(',');
+        document.getElementById(`selected_item_ids_${boxSize}`).value = selectedItemIds;
+
+        const errorElement = document.getElementById(`selection-count-${boxSize}`);
+
+        // Show alert if more than required count
+        if (selectedItems.length > requiredCount) {
+            alert(`You can only select ${requiredCount} items for a ${boxSize} box.`);
+            selectedItems[selectedItems.length - 1].checked = false; // Uncheck last selection
+            return;
+        }
+
+        // Show the selection count and any error if the exact number is not selected
+        if (selectedItems.length === requiredCount) {
+            errorElement.style.display = 'none';
+        } else {
+            errorElement.style.display = 'block';
+            errorElement.innerText = `Please select exactly ${requiredCount} items for a ${boxSize} box.`;
+        }
+
+        // Enable/disable checkboxes based on selection count
+        checkboxes.forEach(checkbox => {
+            checkbox.disabled = selectedItems.length >= requiredCount && !checkbox.checked;
+        });
+    }
+
+    function validateSelection(boxSize) {
+        const selectedItemsInput = document.getElementById(`selected_item_ids_${boxSize}`).value.split(',');
+        const requiredCount = boxSize === 'small' ? 2 : boxSize === 'medium' ? 3 : 4;
+
+        // Check for correct number of selected items
+        if (selectedItemsInput.length !== requiredCount || selectedItemsInput[0] === '') {
+            alert(`Please select exactly ${requiredCount} items for a ${boxSize} box.`);
+            return false; // Prevent form submission
+        }
+        return true; // Allow form submission
+    }
+
+</script>
+{% endblock %}

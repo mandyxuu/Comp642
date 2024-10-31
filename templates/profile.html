@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h1>Welcome to your Profile, {{ session['username'] }}</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Balance</th>
+            <th>Max Owing</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for person,customer in customers %}
+        <tr>
+            <td>{{ person.first_name }} {{ person.last_name }}</td>
+            <td>{{ customer.cust_address }}</td>
+            <td>${{ customer.cust_balance }}</td>
+            <td>${{ customer.max_owing }}</td>
+            
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Profile-specific content goes here -->
+{% endblock %}

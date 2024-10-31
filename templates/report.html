@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Report{% endblock %}
+
+{% block content %}
+<h2>Customer List</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Balance</th>
+            <th>Max Owing</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for person,customer in customers %}
+        <tr>
+            <td>{{ person.first_name }} {{ person.last_name }}</td>
+            <td>{{ customer.cust_address }}</td>
+            <td>${{ customer.cust_balance }}</td>
+            <td>${{ customer.max_owing }}</td>
+            
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Sales Totals</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Period</th>
+            <th>Total Sales</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Weekly Sales</td>
+            <td>${{ sales_totals.weekly_sales }}</td>
+        </tr>
+        <tr>
+            <td>Monthly Sales</td>
+            <td>${{ sales_totals.monthly_sales }}</td>
+        </tr>
+        <tr>
+            <td>Yearly Sales</td>
+            <td>${{ sales_totals.yearly_sales }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Most Popular Items</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Item Name</th>
+            <th>Quantity Sold</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for popular in popular_items %}
+        <tr>
+            <td>{{ popular.item.name }}</td>
+            <td>{{ popular.total_quantity }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
